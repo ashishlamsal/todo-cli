@@ -75,7 +75,13 @@ pub fn add_task(task: Task, file_path: PathBuf) -> Result<()> {
 
 pub fn complete_task(position: usize, file_path: PathBuf) -> Result<()> {
     // Open file in read and write mode
-    let file = OpenOptions::new().read(true).write(true).open(&file_path)?;
+    let file = match OpenOptions::new().read(true).write(true).open(&file_path) {
+        Ok(file) => file,
+        Err(_) => Err(Error::new(
+            ErrorKind::NotFound,
+            r#"Try adding a task first. (-- add "my new task")"#,
+        ))?,
+    };
 
     // Read existing tasks
     let mut tasks: Vec<Task> = collect_tasks(&file)?;
@@ -101,7 +107,13 @@ pub fn complete_task(position: usize, file_path: PathBuf) -> Result<()> {
 
 pub fn list_tasks(file_path: PathBuf) -> Result<()> {
     // Open file in read mode
-    let file = OpenOptions::new().read(true).open(&file_path)?;
+    let file = match OpenOptions::new().read(true).open(&file_path) {
+        Ok(file) => file,
+        Err(_) => Err(Error::new(
+            ErrorKind::NotFound,
+            r#"Try adding a task first. (-- add "my new task")"#,
+        ))?,
+    };
 
     // Read existing tasks
     let tasks: Vec<Task> = collect_tasks(&file)?;
