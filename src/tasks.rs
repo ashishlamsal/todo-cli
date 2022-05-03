@@ -67,6 +67,9 @@ pub fn add_task(task: Task, file_path: PathBuf) -> Result<()> {
     tasks.push(task);
     serde_json::to_writer(&mut BufWriter::new(&file), &tasks)?;
 
+    // List tasks
+    list_tasks(file_path)?;
+
     Ok(())
 }
 
@@ -89,6 +92,9 @@ pub fn complete_task(position: usize, file_path: PathBuf) -> Result<()> {
     // Write updated tasks to the file
     file.set_len(0)?; // truncate file
     serde_json::to_writer(&mut BufWriter::new(&file), &tasks)?;
+
+    // List tasks
+    list_tasks(file_path)?;
 
     Ok(())
 }

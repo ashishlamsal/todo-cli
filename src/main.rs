@@ -1,4 +1,3 @@
-// use anyhow::anyhow;
 use cli::{Action::*, CommandLineArgs};
 use std::path::PathBuf;
 use structopt::StructOpt;
