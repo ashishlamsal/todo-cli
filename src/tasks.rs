@@ -10,6 +10,7 @@ use std::{
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
     pub text: String,
+    pub completed: bool,
 
     // Serialize and deserialize DateTime as Unix timestamp (seconds)
     #[serde(with = "ts_seconds")]
@@ -20,6 +21,7 @@ impl Task {
     pub fn new(text: String) -> Task {
         Task {
             text,
+            completed: false,
             created_at: Utc::now(),
         }
     }
@@ -31,7 +33,12 @@ impl std::fmt::Display for Task {
             .created_at
             .with_timezone(&Local)
             .format("%Y-%m-%d %H:%M:%S");
-        write!(f, "{:<50} [{}]", self.text, created_at)
+        let is_complete = if self.completed { "✓" } else { "•" };
+        write!(
+            f,
+            "{:<50} [{:<20}] [{}]",
+            self.text, created_at, is_complete
+        )
     }
 }
 
@@ -73,7 +80,7 @@ pub fn add_task(task: Task, file_path: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub fn complete_task(position: usize, file_path: PathBuf) -> Result<()> {
+pub fn remove_task(position: usize, file_path: PathBuf) -> Result<()> {
     // Open file in read and write mode
     let file = match OpenOptions::new().read(true).write(true).open(&file_path) {
         Ok(file) => file,
@@ -105,6 +112,38 @@ pub fn complete_task(position: usize, file_path: PathBuf) -> Result<()> {
     Ok(())
 }
 
+pub fn complete_task(position: usize, file_path: PathBuf) -> Result<()> {
+    // Open file in read and write mode
+    let file = match OpenOptions::new().read(true).write(true).open(&file_path) {
+        Ok(file) => file,
+        Err(_) => Err(Error::new(
+            ErrorKind::NotFound,
+            r#"Try adding a task first. (-- add "my new task")"#,
+        ))?,
+    };
+
+    // Read existing tasks
+    let mut tasks: Vec<Task> = collect_tasks(&file)?;
+
+    // Remove task from the list
+    if position == 0 || position > tasks.len() {
+        return Err(Error::new(
+            ErrorKind::InvalidInput,
+            "Could not find task with given ID",
+        ));
+    }
+    tasks.get_mut(position - 1).unwrap().completed = true;
+
+    // Write updated tasks to the file
+    file.set_len(0)?; // truncate file
+    serde_json::to_writer(&mut BufWriter::new(&file), &tasks)?;
+
+    // List tasks
+    list_tasks(file_path)?;
+
+    Ok(())
+}
+
 pub fn list_tasks(file_path: PathBuf) -> Result<()> {
     // Open file in read mode
     let file = match OpenOptions::new().read(true).open(&file_path) {
@@ -122,7 +161,7 @@ pub fn list_tasks(file_path: PathBuf) -> Result<()> {
     if tasks.is_empty() {
         println!("No tasks!");
     } else {
-        println!("{:<53} {}", "List of Tasks", "Date Added");
+        println!("{:<53} {:<22} {}", "List of Tasks", "Date Added", "Status");
         for (i, task) in tasks.iter().enumerate() {
             println!("{}: {}", i + 1, task);
         }

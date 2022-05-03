@@ -9,6 +9,12 @@ pub enum Action {
         task: String,
     },
 
+    /// Remove a task
+    Remove {
+        #[structopt()]
+        position: usize,
+    },
+
     /// Mark a task as done
     Done {
         #[structopt()]
