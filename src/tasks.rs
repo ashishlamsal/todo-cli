@@ -1,4 +1,5 @@
 use chrono::{serde::ts_seconds, DateTime, Local, Utc};
+use colored::*;
 use serde::{Deserialize, Serialize};
 
 use std::{
@@ -33,7 +34,11 @@ impl std::fmt::Display for Task {
             .created_at
             .with_timezone(&Local)
             .format("%Y-%m-%d %H:%M:%S");
-        let is_complete = if self.completed { "✓" } else { "•" };
+        let is_complete = if self.completed {
+            "✓".green()
+        } else {
+            "•".yellow()
+        };
         write!(
             f,
             "{:<50} [{:<20}] [{}]",
@@ -161,7 +166,12 @@ pub fn list_tasks(file_path: PathBuf) -> Result<()> {
     if tasks.is_empty() {
         println!("No tasks!");
     } else {
-        println!("{:<53} {:<22} {}", "List of Tasks", "Date Added", "Status");
+        println!(
+            "{:<54} {:<22} {}",
+            "\nList of Tasks".blue().bold(),
+            "Date Added".blue().bold(),
+            "Status".blue().bold()
+        );
         for (i, task) in tasks.iter().enumerate() {
             println!("{}: {}", i + 1, task);
         }

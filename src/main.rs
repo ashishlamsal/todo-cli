@@ -3,6 +3,7 @@ mod tasks;
 
 use anyhow::anyhow;
 use cli::{Action::*, CommandLineArgs};
+use colored::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use tasks::Task;
@@ -22,7 +23,10 @@ fn main() -> anyhow::Result<()> {
     let file_path = file_path
         .or_else(find_default_tasks_file)
         .ok_or(anyhow!("Failed to find default tasks file."))?;
-    println!("Using file: {}", file_path.display());
+    println!(
+        "Using file : {}",
+        file_path.display().to_string().italic().yellow()
+    );
 
     // Perform action
     match action {
