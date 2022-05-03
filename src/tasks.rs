@@ -163,9 +163,14 @@ pub fn list_tasks(file_path: PathBuf) -> Result<()> {
     let tasks: Vec<Task> = collect_tasks(&file)?;
 
     // Print tasks
+
     if tasks.is_empty() {
         println!("No tasks!");
     } else {
+        println!(
+            "Using file : {}",
+            file_path.display().to_string().italic().yellow()
+        );
         println!(
             "{:<54} {:<22} {}",
             "\nList of Tasks".blue().bold(),
