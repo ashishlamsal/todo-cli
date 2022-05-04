@@ -1,37 +1,47 @@
+use clap::{Parser, Subcommand};
 use std::path::PathBuf;
-use structopt::StructOpt;
 
-#[derive(StructOpt, Debug)]
+#[derive(Parser, Debug)]
+#[clap(
+    author,
+    version,
+    name = "todo-cli",
+    about = "A simple todo app written in Rust"
+)]
+pub struct CommandLineArgs {
+    #[clap(subcommand)]
+    pub command: Option<Action>,
+
+    /// Sets a custom config file
+    #[clap(
+        short = 'f',
+        long = "file",
+        parse(from_os_str),
+        value_name = "FILE_PATH"
+    )]
+    pub file_path: Option<PathBuf>,
+}
+
+#[derive(Subcommand, Debug)]
 pub enum Action {
     /// Add a new task
     Add {
-        #[structopt()]
+        #[clap()]
         task: String,
     },
 
     /// Remove a task
     Remove {
-        #[structopt()]
+        #[clap()]
         position: usize,
     },
 
     /// Mark a task as done
     Done {
-        #[structopt()]
+        #[clap()]
         position: usize,
     },
 
     /// List all tasks
     List,
-}
-
-#[derive(StructOpt, Debug)]
-#[structopt(name = "todo-cli", about = "A simple todo app written in Rust")]
-pub struct CommandLineArgs {
-    #[structopt(subcommand)]
-    pub action: Action,
-
-    /// Use different file for storing tasks
-    #[structopt(short = "f", long = "file", parse(from_os_str))]
-    pub file_path: Option<PathBuf>,
 }

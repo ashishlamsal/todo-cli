@@ -2,9 +2,9 @@ mod cli;
 mod tasks;
 
 use anyhow::anyhow;
+use clap::Parser;
 use cli::{Action::*, CommandLineArgs};
 use std::path::PathBuf;
-use structopt::StructOpt;
 use tasks::Task;
 
 fn find_default_tasks_file() -> Option<PathBuf> {
@@ -16,7 +16,7 @@ fn find_default_tasks_file() -> Option<PathBuf> {
 
 fn main() -> anyhow::Result<()> {
     // Parse command line arguments
-    let CommandLineArgs { action, file_path } = CommandLineArgs::from_args();
+    let CommandLineArgs { command, file_path } = CommandLineArgs::parse();
 
     // Get file path
     let file_path = file_path
@@ -24,25 +24,29 @@ fn main() -> anyhow::Result<()> {
         .ok_or(anyhow!("Failed to find default tasks file."))?;
 
     // Perform action
-    match action {
-        Add { task } => {
+    match command {
+        Some(Add { task }) => {
             // Create new task
             let task = Task::new(task);
 
             // Add task to the file
             tasks::add_task(task, file_path)?;
         }
-        Remove { position } => {
+        Some(Remove { position }) => {
             // Remove task from the file
             tasks::remove_task(position, file_path)?;
         }
-        Done { position } => {
+        Some(Done { position }) => {
             // Mark task as done
             tasks::complete_task(position, file_path)?;
         }
-        List => {
+        Some(List) => {
             // List tasks
             tasks::list_tasks(file_path)?;
+        }
+        None => {
+            // Print help
+            println!(r#"Try `.\todo-cli.exe --help` for more information."#);
         }
     }
 
